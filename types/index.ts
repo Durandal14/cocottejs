@@ -2,21 +2,24 @@ export type Framework = "astro" | "sveltekit" | "nextjs" | "vite";
 export type PackageManager = "npm" | "pnpm" | "yarn" | "bun";
 export type Language = "js" | "ts";
 export type CSSFramework = "tailwind" | "unocss";
-export type TestingFramework = "vitest" | "playwright";
+export type DevTool = 'eslint' | 'prettier' | 'husky' | 'docker';
+export type TestingFramework = 'vitest' | 'playwright';
+export type Addon = 'mdsvex' | 'zod' | 'zustand' | 'partytown';
 export type LintingTool = "eslint" | "prettier";
 export type Front = "react" | "vue" | "svelte" | "solid";
 export interface FrameworkConfig {
-    framework: Framework;
-    packageManager: PackageManager;
-    projectDir: string;
     language: Language;
+    packageManager: PackageManager;
+    framework: Framework;
+    css?: CSSFramework;
     front?: Front;
-    features: {
-        css?: CSSFramework;
-        testing?: TestingFramework[];
-        linting?: LintingTool[];
-        git?: boolean;
-    };
+    dev?: DevTool[];
+    testing?: TestingFramework[];
+    addons?: Addon[];
+    git?: boolean;
+    dependencies?: boolean;
+    cssTheme?: string;
+    shadcnAddons?: string[];
 }
 
 export interface Installer {
@@ -29,19 +32,6 @@ export interface PackageManagerInterface {
     run(script: string): Promise<void>;
 }
 
-export interface PackageOptions {
-    meta: "astro" | "sveltekit" | "nextjs";
-    compiler: "npm" | "pnpm" | "yarn" | "bun";
-    projectDir: string;
-    language: "js" | "ts";
-    css?: "tailwind" | "unocss";
-    eslint?: boolean;
-    prettier?: boolean;
-    playwright?: boolean;
-    vitest?: boolean;
-    git?: boolean;
-    dependencies?: boolean;
-}
 
 export interface SpawnOptions {
     stdio?: 'pipe' | 'inherit' | 'ignore' | Array<'pipe' | 'inherit' | 'ignore'>;

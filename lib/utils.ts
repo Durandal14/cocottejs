@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import { FrameworkConfig, PackageOptions, SpawnOptions } from "../types/index";
+import { SpawnOptions } from "../types/index";
 import ora from 'ora';
 
 const DEBUG = false;
@@ -87,15 +87,3 @@ export function spawnWithPrompts(
         });
     });
 }
-
-const config: FrameworkConfig = {
-    framework: "sveltekit", // or "astro" or "nextjs"
-    packageManager: "pnpm",
-    projectDir: "my-project",
-    language: "ts",
-    features: {
-        css: "tailwind",
-        linting: ["eslint", "prettier"], // Add both ESLint and Prettier
-        git: true
-    }
-}; 
