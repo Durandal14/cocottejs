@@ -5,20 +5,31 @@ export type InstructionType =
     | 'spawn'
     | 'updateFile'
     | 'createFile'
+    | 'addFile'
     | 'addImport'
     | 'addInHeadHtml'
+    | 'replaceLines'
     | 'addVitePlugin';
 
 export interface BaseInstruction {
     type: InstructionType;
     name: string;
-    order: number;
+}
+
+export interface ReplaceLinesInstruction extends BaseInstruction {
+    type: 'replaceLines';
+    path: string;
+    contentFrom: string;
+    contentTo: string;
 }
 
 export interface AddVitePluginInstruction extends BaseInstruction {
     type: 'addVitePlugin';
     path: string;
     content: string;
+    importName: string;
+    end?: boolean;
+    astro?: boolean;
 }
 
 export interface ShellInstruction extends BaseInstruction {
@@ -47,12 +58,18 @@ export interface CreateFileInstruction extends BaseInstruction {
     type: 'createFile';
     path: string;
     content: string;
-    remoteUrl?: string;
 }
+
+export interface AddFileInstruction extends BaseInstruction {
+    type: 'addFile';
+    path: string;
+    remotePath: string;
+}
+
 
 export interface AddImportInstruction extends BaseInstruction {
     type: 'addImport';
-    file: string;
+    path: string;
     content: string;
 }
 
@@ -69,10 +86,11 @@ export type Instruction =
     | CreateFileInstruction
     | AddImportInstruction
     | AddVitePluginInstruction
-    | AddInHeadHtmlInstruction;
+    | AddInHeadHtmlInstruction
+    | AddFileInstruction
+    | ReplaceLinesInstruction;
 
 export interface InstructionSet {
     config: FrameworkConfig;
     instructions: Instruction[];
 }
-
