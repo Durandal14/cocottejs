@@ -133,7 +133,7 @@ export class InstructionExecutor {
 
 	// Add a content in a specific number of line of a file
 	private static async addToLine(instruction: AddToLineInstruction): Promise<void> {
-		const line = instruction.line || 1;
+		const line = instruction.line ? instruction.line - 1 : 0;
 		const content = await fs.readFile(instruction.path, 'utf-8');
 		let newContent = '';
 		// if line is negative, add to the end of the file
