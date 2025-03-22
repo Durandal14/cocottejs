@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
-import { parse } from "acorn";
-import { walk } from "estree-walker";
+import * as fs from 'fs';
+import * as path from 'path';
+import { parse } from 'acorn';
+import { walk } from 'estree-walker';
 
 /**
  * Adds an import statement to a file if it doesn't already exist
@@ -11,21 +11,21 @@ import { walk } from "estree-walker";
  * @returns The modified code or null if file doesn't exist
  */
 export function addImportToFile(
-  filePath: string,
-  importStatement: string,
-  importCheck: RegExp
+	filePath: string,
+	importStatement: string,
+	importCheck: RegExp
 ): string | null {
-  if (!fs.existsSync(filePath)) return null;
+	if (!fs.existsSync(filePath)) return null;
 
-  let code = fs.readFileSync(filePath, "utf8");
+	let code = fs.readFileSync(filePath, 'utf8');
 
-  // Check if import already exists
-  const hasImport = importCheck.test(code);
-  if (!hasImport) {
-    code = `${importStatement}\n` + code;
-  }
+	// Check if import already exists
+	const hasImport = importCheck.test(code);
+	if (!hasImport) {
+		code = `${importStatement}\n` + code;
+	}
 
-  return code;
+	return code;
 }
 
 /**
@@ -36,25 +36,25 @@ export function addImportToFile(
  * @returns Position of the property value end or null if not found
  */
 export function findPropertyPosition(
-  code: string,
-  propertyName: string,
-  expectedValueType: string
+	code: string,
+	propertyName: string,
+	expectedValueType: string
 ): number | null {
-  const ast = parse(code, { sourceType: "module", ecmaVersion: "latest" });
-  let position = null;
-  walk(ast as any, {
-    enter(node: any) {
-      if (
-        node.type === 'Property' &&
-        node.key.name === propertyName &&
-        node.value.type === expectedValueType
-      ) {
-        position = node.value.end - 1;
-      }
-    },
-  });
+	const ast = parse(code, { sourceType: 'module', ecmaVersion: 'latest' });
+	let position = null;
+	walk(ast as any, {
+		enter(node: any) {
+			if (
+				node.type === 'Property' &&
+				node.key.name === propertyName &&
+				node.value.type === expectedValueType
+			) {
+				position = node.value.end - 1;
+			}
+		},
+	});
 
-  return position;
+	return position;
 }
 
 /**
@@ -66,19 +66,15 @@ export function findPropertyPosition(
  * @returns The modified code
  */
 export function addValueToProperty(
-  code: string,
-  propertyPosition: number | null,
-  valueToAdd: string,
-  checkString: string
+	code: string,
+	propertyPosition: number | null,
+	valueToAdd: string,
+	checkString: string
 ): string {
-  if (propertyPosition !== null && !code.includes(checkString)) {
-    return (
-      code.slice(0, propertyPosition) +
-      `, ${valueToAdd}` +
-      code.slice(propertyPosition)
-    );
-  }
-  return code;
+	if (propertyPosition !== null && !code.includes(checkString)) {
+		return code.slice(0, propertyPosition) + `, ${valueToAdd}` + code.slice(propertyPosition);
+	}
+	return code;
 }
 
 /**
@@ -87,13 +83,9 @@ export function addValueToProperty(
  * @param code The new content
  * @param successMessage Message to log on success
  */
-export function updateFile(
-  filePath: string,
-  code: string,
-  successMessage: string
-): void {
-  fs.writeFileSync(filePath, code, "utf8");
-  console.log(successMessage);
+export function updateFile(filePath: string, code: string, successMessage: string): void {
+	fs.writeFileSync(filePath, code, 'utf8');
+	console.log(successMessage);
 }
 
 /**
@@ -108,26 +100,26 @@ export function updateFile(
  * @param successMessage Success message to display
  */
 export function modifyConfigFile(
-  projectDir: string,
-  fileName: string,
-  importStatement: string,
-  importCheck: RegExp,
-  propertyName: string,
-  valueToAdd: string,
-  checkString: string
+	projectDir: string,
+	fileName: string,
+	importStatement: string,
+	importCheck: RegExp,
+	propertyName: string,
+	valueToAdd: string,
+	checkString: string
 ): void {
-  const filePath = path.join(projectDir, fileName);
+	const filePath = path.join(projectDir, fileName);
 
-  // Add import if needed
-  let code = addImportToFile(filePath, importStatement, importCheck);
-  if (!code) return;
+	// Add import if needed
+	let code = addImportToFile(filePath, importStatement, importCheck);
+	if (!code) return;
 
-  // Find property position
-  const position = findPropertyPosition(code, propertyName, "ArrayExpression");
+	// Find property position
+	const position = findPropertyPosition(code, propertyName, 'ArrayExpression');
 
-  // Add value to property if needed
-  code = addValueToProperty(code, position, valueToAdd, checkString);
+	// Add value to property if needed
+	code = addValueToProperty(code, position, valueToAdd, checkString);
 
-  // Update file
-  updateFile(filePath, code, `✅ ${checkString} added to ${fileName}`);
+	// Update file
+	updateFile(filePath, code, `✅ ${checkString} added to ${fileName}`);
 }

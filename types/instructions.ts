@@ -1,104 +1,94 @@
 import type { FrameworkConfig } from './';
 
 export type InstructionType =
-  | 'shell'
-  | 'spawn'
-  | 'updateFile'
-  | 'createFile'
-  | 'addFile'
-  | 'addImport'
-  | 'addInHeadHtml'
-  | 'replaceLines'
-  | 'addVitePlugin'
-  | 'addToEnd';
+	| 'shell'
+	| 'spawn'
+	| 'updateFile'
+	| 'createFile'
+	| 'addFile'
+	| 'addInHeadHtml'
+	| 'replaceLines'
+	| 'addVitePlugin'
+	| 'addToLine';
 
 export interface BaseInstruction {
-  type: InstructionType;
-  name: string;
+	type: InstructionType;
+	name: string;
 }
 
 export interface ReplaceLinesInstruction extends BaseInstruction {
-  type: 'replaceLines';
-  path: string;
-  contentFrom: string;
-  contentTo: string;
+	type: 'replaceLines';
+	path: string;
+	contentFrom: string;
+	contentTo: string;
 }
 
 export interface AddVitePluginInstruction extends BaseInstruction {
-  type: 'addVitePlugin';
-  path: string;
-  content: string;
-  importName: string;
-  end?: boolean;
-  astro?: boolean;
+	type: 'addVitePlugin';
+	path: string;
+	content: string;
+	importName: string;
+	end?: boolean;
+	astro?: boolean;
 }
 
 export interface ShellInstruction extends BaseInstruction {
-  type: 'shell';
-  command: string;
-  cwd?: string;
+	type: 'shell';
+	command: string;
+	cwd?: string;
 }
 
 export interface SpawnInstruction extends BaseInstruction {
-  type: 'spawn';
-  command: string;
-  options?: {
-    cwd?: string;
-    stdio?: 'inherit' | 'pipe' | 'ignore';
-  };
+	type: 'spawn';
+	command: string;
+	cwd?: string;
+	stdio?: 'inherit' | 'pipe' | 'ignore';
 }
 
 export interface UpdateFileInstruction extends BaseInstruction {
-  type: 'updateFile';
-  path: string;
-  content: string;
-  mode?: 'append' | 'replace' | 'prepend';
+	type: 'updateFile';
+	path: string;
+	content: string;
+	mode?: 'append' | 'replace' | 'prepend';
 }
 
 export interface CreateFileInstruction extends BaseInstruction {
-  type: 'createFile';
-  path: string;
-  content: string;
+	type: 'createFile';
+	path: string;
+	content: string;
 }
 
 export interface AddFileInstruction extends BaseInstruction {
-  type: 'addFile';
-  path: string;
-  remotePath: string;
-}
-
-export interface AddImportInstruction extends BaseInstruction {
-  type: 'addImport';
-  path: string;
-  content: string;
-  second?: boolean;
+	type: 'addFile';
+	path: string;
+	remotePath: string;
 }
 
 export interface AddInHeadHtmlInstruction extends BaseInstruction {
-  type: 'addInHeadHtml';
-  path: string;
-  content: string;
+	type: 'addInHeadHtml';
+	path: string;
+	content: string;
 }
 
-export interface AddToEndInstruction extends BaseInstruction {
-  type: 'addToEnd';
-  path: string;
-  content: string;
+export interface AddToLineInstruction extends BaseInstruction {
+	type: 'addToLine';
+	path: string;
+	content: string;
+	line?: number;
 }
 
 export type Instruction =
-  | ShellInstruction
-  | SpawnInstruction
-  | UpdateFileInstruction
-  | CreateFileInstruction
-  | AddImportInstruction
-  | AddVitePluginInstruction
-  | AddInHeadHtmlInstruction
-  | AddFileInstruction
-  | AddToEndInstruction
-  | ReplaceLinesInstruction;
+	| ShellInstruction
+	| SpawnInstruction
+	| UpdateFileInstruction
+	| CreateFileInstruction
+	| AddVitePluginInstruction
+	| AddInHeadHtmlInstruction
+	| AddFileInstruction
+	| AddToLineInstruction
+	| ReplaceLinesInstruction;
 
 export interface InstructionSet {
-  config: FrameworkConfig;
-  instructions: Instruction[];
+	config: FrameworkConfig;
+	instructions: Instruction[];
 }
