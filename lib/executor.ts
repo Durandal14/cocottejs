@@ -9,7 +9,7 @@ import {
 	AddToLineInstruction,
 } from '../types/instructions.js';
 import { exec, ExecOptions } from 'child_process';
-import { spawn } from 'child_process';
+import { spawn, SpawnOptions } from 'child_process';
 import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 
@@ -58,23 +58,66 @@ export class InstructionExecutor {
 
 	private static executeSpawn(instruction: SpawnInstruction, isDebug: boolean): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const [command, ...args] = instruction.command.split(' ');
-			const options = {
-				cwd: instruction.cwd || '.',
-				stdio: isDebug ? 'inherit' : instruction.stdio || 'pipe',
-			};
+			// ... existing code ...
 
-			const process = spawn(command, args, options);
-
-			process.on('close', code => {
-				if (code === 0) {
-					resolve();
-				} else {
-					reject(new Error(`Process exited with code ${code}`));
+			// Better command parsing to handle spaces in arguments
+			let args: string[];
+			if (typeof instruction.command === 'string') {
+				// Handle quoted arguments properly
+				args = instruction.command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+				const command = args.shift();
+				if (!command) {
+					return reject(new Error('No command specified'));
 				}
-			});
+
+				const options: SpawnOptions = {
+					cwd: instruction.cwd || '.',
+					stdio: isDebug ? ['inherit', 'inherit', 'inherit'] :
+						(instruction.stdio ? [instruction.stdio, instruction.stdio, instruction.stdio] :
+							['pipe', 'pipe', 'pipe']),
+					shell: true // Better cross-platform support
+				};
+
+				const childProcess = spawn(command, args, options);
+
+				// Handle process errors
+				childProcess.on('error', (error: any) => {
+					reject(new Error(`Failed to start process: ${error.message}`));
+				});
+
+
+				childProcess.on('close', (code: number) => {
+					if (code === 0) {
+						resolve();
+					} else {
+						reject(new Error(`Process exited with code ${code}`));
+					}
+				});
+			} else {
+				reject(new Error('Invalid command format'));
+			}
 		});
 	}
+
+	// private static executeSpawn2(instruction: SpawnInstruction, isDebug: boolean): Promise<void> {
+	// 	return new Promise((resolve, reject) => {
+	// 		const [command, ...args] = instruction.command.split(' ');
+	// 		const options = {
+	// 			cwd: instruction.cwd || '.',
+	// 			stdio: isDebug ? ['inherit', 'inherit', 'inherit'] : (instruction.stdio ? [instruction.stdio, instruction.stdio, instruction.stdio] : ['pipe', 'pipe', 'pipe']),
+	// 		};
+
+	// 		const process = spawn(command, args, options);
+
+	// 		process.on('close', code => {
+	// 			if (code === 0) {
+	// 				resolve();
+	// 			} else {
+	// 				reject(new Error(`Process exited with code ${code}`));
+	// 			}
+	// 		});
+	// 	});
+	// }
 
 	private static async createFile(instruction: CreateFileInstruction): Promise<void> {
 		await fs.writeFile(instruction.path, instruction.content);

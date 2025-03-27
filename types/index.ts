@@ -31,20 +31,3 @@ export interface PackageManagerInterface {
 	add(packages: string[]): Promise<void>;
 	run(script: string): Promise<void>;
 }
-
-export interface SpawnOptions {
-	stdio?: 'pipe' | 'inherit' | 'ignore' | Array<'pipe' | 'inherit' | 'ignore'>;
-	cwd?: string;
-	env?: NodeJS.ProcessEnv;
-	argv0?: string;
-	detached?: boolean;
-	uid?: number;
-	gid?: number;
-	serialization?: 'json' | 'advanced';
-	shell?: boolean | string;
-	windowsVerbatimArguments?: boolean;
-	windowsHide?: boolean;
-	signal?: AbortSignal;
-	timeout?: number;
-	killSignal?: NodeJS.Signals | number;
-}
