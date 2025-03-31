@@ -7,11 +7,16 @@ import {
 	CreateFileInstruction,
 	AddVitePluginInstruction,
 	AddToLineInstruction,
+	AddJsonPropertyInstruction,
+	RemoveFilesInstruction
 } from '../types/instructions.js';
 import { exec, ExecOptions } from 'child_process';
 import { spawn, SpawnOptions } from 'child_process';
 import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
+import path from 'path';
+
+const SERVER_URL = "http://localhost:5173/"
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -37,6 +42,57 @@ export class InstructionExecutor {
 			case 'replaceLines':
 				await this.replaceLines(instruction);
 				break;
+			case 'addJsonProperty':
+				await this.addJsonProperty(instruction);
+				break;
+			case 'removeFiles':
+				await this.removeFiles(instruction);
+				break;
+		}
+	}
+
+	private static async addJsonProperty(instruction: AddJsonPropertyInstruction): Promise<void> {
+		const content = await fs.readFile(instruction.path, 'utf-8');
+		const updatedContent = await this.handleJsonFile(content, instruction);
+		await fs.writeFile(instruction.path, updatedContent);
+	}
+
+	private static async handleJsonFile(content: string, instruction: AddJsonPropertyInstruction): Promise<string> {
+		try {
+			// Remove comments before parsing
+			const contentWithoutComments = content.replace(/\/\*[\s\S]*?\*\//g, '');
+			const jsonContent = JSON.parse(contentWithoutComments);
+
+			// Update the property
+			this.updateNestedProperty(jsonContent, instruction.property, JSON.parse(instruction.value));
+
+			// Return formatted JSON
+			return JSON.stringify(jsonContent, null, 2);
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(`Failed to parse JSON: ${error.message}`);
+			}
+			throw new Error('Failed to parse JSON: Unknown error');
+		}
+	}
+
+	private static updateNestedProperty(obj: Record<string, any>, propertyPath: string, value: any): void {
+		if (propertyPath.includes('.')) {
+			const props = propertyPath.split('.');
+			let current = obj;
+
+			// Navigate to the nested property location
+			for (let i = 0; i < props.length - 1; i++) {
+				if (!current[props[i]]) {
+					current[props[i]] = {};
+				}
+				current = current[props[i]];
+			}
+
+			// Set the final property value
+			current[props[props.length - 1]] = value;
+		} else {
+			obj[propertyPath] = value;
 		}
 	}
 
@@ -99,26 +155,6 @@ export class InstructionExecutor {
 		});
 	}
 
-	// private static executeSpawn2(instruction: SpawnInstruction, isDebug: boolean): Promise<void> {
-	// 	return new Promise((resolve, reject) => {
-	// 		const [command, ...args] = instruction.command.split(' ');
-	// 		const options = {
-	// 			cwd: instruction.cwd || '.',
-	// 			stdio: isDebug ? ['inherit', 'inherit', 'inherit'] : (instruction.stdio ? [instruction.stdio, instruction.stdio, instruction.stdio] : ['pipe', 'pipe', 'pipe']),
-	// 		};
-
-	// 		const process = spawn(command, args, options);
-
-	// 		process.on('close', code => {
-	// 			if (code === 0) {
-	// 				resolve();
-	// 			} else {
-	// 				reject(new Error(`Process exited with code ${code}`));
-	// 			}
-	// 		});
-	// 	});
-	// }
-
 	private static async createFile(instruction: CreateFileInstruction): Promise<void> {
 		await fs.writeFile(instruction.path, instruction.content);
 	}
@@ -162,10 +198,26 @@ export class InstructionExecutor {
 	}
 
 	private static async addFile(instruction: AddFileInstruction): Promise<void> {
-		const server = 'http://localhost:5173/files/';
+		const server = SERVER_URL;
 		const response = await fetch(server + instruction.remotePath);
 		const content = await response.text();
+
+		// Get directory path from file path
+		const dirPath = path.dirname(instruction.path);
+
+		// Create directory and any parent directories if they don't exist
+		await fs.mkdir(dirPath, { recursive: true });
+
 		await fs.writeFile(instruction.path, content);
+	}
+
+	private static async removeFiles(instruction: RemoveFilesInstruction): Promise<void> {
+		const stats = await fs.stat(instruction.path);
+		if (stats.isDirectory()) {
+			await fs.rm(instruction.path, { recursive: true, force: true });
+		} else {
+			await fs.unlink(instruction.path);
+		}
 	}
 
 	private static async replaceLines(instruction: ReplaceLinesInstruction): Promise<void> {

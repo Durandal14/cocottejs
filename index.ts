@@ -5,6 +5,8 @@ import { InstructionExecutor } from './lib/executor.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
+export const SERVER_URL = 'http://localhost:5173/';
+
 /**
  * Marmite - A CLI tool for scaffolding web projects with remote instructions
  *

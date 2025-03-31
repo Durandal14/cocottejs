@@ -1,7 +1,8 @@
 import { APIResponse } from '../types/api.js';
 
-const PUBLIC_API_URL = 'http://localhost:5173/api/build';
-const PRIVATE_API_URL = 'http://localhost:5173/api/get';
+const SERVER_URL = "http://localhost:5173/"
+const PUBLIC_API_URL = `${SERVER_URL}api/build`;
+const PRIVATE_API_URL = `${SERVER_URL}api/get`;
 
 export class APIService {
 	static async getPublicInstructions(identifier: string, projectDir: string): Promise<APIResponse> {

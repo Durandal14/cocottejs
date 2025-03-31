@@ -9,7 +9,9 @@ export type InstructionType =
 	| 'addInHeadHtml'
 	| 'replaceLines'
 	| 'addVitePlugin'
-	| 'addToLine';
+	| 'addToLine'
+	| 'addJsonProperty'
+	| 'removeFiles';
 
 export interface BaseInstruction {
 	type: InstructionType;
@@ -19,7 +21,7 @@ export interface BaseInstruction {
 export interface ReplaceLinesInstruction extends BaseInstruction {
 	type: 'replaceLines';
 	path: string;
-	contentFrom: string;
+	contentFrom: RegExp | string;
 	contentTo: string;
 }
 
@@ -77,6 +79,18 @@ export interface AddToLineInstruction extends BaseInstruction {
 	line?: number;
 }
 
+export interface AddJsonPropertyInstruction extends BaseInstruction {
+	type: 'addJsonProperty';
+	path: string;
+	property: string;
+	value: string;
+}
+
+export interface RemoveFilesInstruction extends BaseInstruction {
+	type: 'removeFiles';
+	path: string;
+}
+
 export type Instruction =
 	| ShellInstruction
 	| SpawnInstruction
@@ -86,7 +100,9 @@ export type Instruction =
 	| AddInHeadHtmlInstruction
 	| AddFileInstruction
 	| AddToLineInstruction
-	| ReplaceLinesInstruction;
+	| ReplaceLinesInstruction
+	| AddJsonPropertyInstruction
+	| RemoveFilesInstruction;
 
 export interface InstructionSet {
 	config: FrameworkConfig;
