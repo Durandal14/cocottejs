@@ -8,7 +8,7 @@ import {
 	AddVitePluginInstruction,
 	AddToLineInstruction,
 	AddJsonPropertyInstruction,
-	RemoveFilesInstruction
+	RemoveFilesInstruction,
 } from '../types/instructions.js';
 import { exec, ExecOptions } from 'child_process';
 import { spawn, SpawnOptions } from 'child_process';
@@ -16,7 +16,7 @@ import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
 
-const SERVER_URL = "http://localhost:5173/"
+const SERVER_URL = 'https://www.cocottejs.com/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -57,7 +57,10 @@ export class InstructionExecutor {
 		await fs.writeFile(instruction.path, updatedContent);
 	}
 
-	private static async handleJsonFile(content: string, instruction: AddJsonPropertyInstruction): Promise<string> {
+	private static async handleJsonFile(
+		content: string,
+		instruction: AddJsonPropertyInstruction
+	): Promise<string> {
 		try {
 			// Remove comments before parsing
 			const contentWithoutComments = content.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -76,7 +79,11 @@ export class InstructionExecutor {
 		}
 	}
 
-	private static updateNestedProperty(obj: Record<string, any>, propertyPath: string, value: any): void {
+	private static updateNestedProperty(
+		obj: Record<string, any>,
+		propertyPath: string,
+		value: any
+	): void {
 		if (propertyPath.includes('.')) {
 			const props = propertyPath.split('.');
 			let current = obj;
@@ -128,10 +135,12 @@ export class InstructionExecutor {
 
 				const options: SpawnOptions = {
 					cwd: instruction.cwd || '.',
-					stdio: isDebug ? ['inherit', 'inherit', 'inherit'] :
-						(instruction.stdio ? [instruction.stdio, instruction.stdio, instruction.stdio] :
-							['pipe', 'pipe', 'pipe']),
-					shell: true // Better cross-platform support
+					stdio: isDebug
+						? ['inherit', 'inherit', 'inherit']
+						: instruction.stdio
+							? [instruction.stdio, instruction.stdio, instruction.stdio]
+							: ['pipe', 'pipe', 'pipe'],
+					shell: true, // Better cross-platform support
 				};
 
 				const childProcess = spawn(command, args, options);
@@ -140,7 +149,6 @@ export class InstructionExecutor {
 				childProcess.on('error', (error: any) => {
 					reject(new Error(`Failed to start process: ${error.message}`));
 				});
-
 
 				childProcess.on('close', (code: number) => {
 					if (code === 0) {
