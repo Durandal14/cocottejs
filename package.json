@@ -1,12 +1,12 @@
 {
-  "name": "marmite",
+  "name": "cocotte",
   "version": "1.0.0",
   "description": "A CLI tool for scaffolding web projects",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "marmite": "./dist/index.js"
+    "cocotte": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

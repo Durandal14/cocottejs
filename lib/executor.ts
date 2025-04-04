@@ -156,6 +156,11 @@ export class InstructionExecutor {
 	}
 
 	private static async createFile(instruction: CreateFileInstruction): Promise<void> {
+		// Get directory path from file path
+		const dirPath = path.dirname(instruction.path);
+		// Create directory and any parent directories if they don't exist
+		await fs.mkdir(dirPath, { recursive: true });
+
 		await fs.writeFile(instruction.path, instruction.content);
 	}
 
