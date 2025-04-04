@@ -96,7 +96,7 @@ async function main(): Promise<void> {
         apiResponse = await APIService.getPrivateInstructions(identifier, projectDir, token);
       } else {
         apiResponse = await APIService.getPublicInstructions(identifier, projectDir);
-        console.log('DEBUG', JSON.stringify(apiResponse, null, 2));
+        // console.log('DEBUG', JSON.stringify(apiResponse, null, 2));
       }
     } catch (error) {
       console.error(

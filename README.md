@@ -43,6 +43,6 @@ Any feedback is welcome.
 
 [Twitter](https://twitter.com/johnnyguaca)
 
-[Email](mailto:johgnny@cocotte.com)
+[Email](mailto:johnny@cocottejs.com)
 
 [Website](https://www.cocottejs.com)
