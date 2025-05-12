@@ -16,7 +16,8 @@ import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
 
-const SERVER_URL = 'https://www.cocottejs.com/';
+const SERVER_URL = 'https://cocottejs.com/';
+// const SERVER_URL = 'http://localhost:5173/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {

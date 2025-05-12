@@ -1,6 +1,7 @@
 import { APIResponse } from '../types/api.js';
 
-const SERVER_URL = 'https://www.cocottejs.com/';
+const SERVER_URL = 'https://cocottejs.com/';
+// const SERVER_URL = 'http://localhost:5173/';
 const PUBLIC_API_URL = `${SERVER_URL}api/build`;
 const PRIVATE_API_URL = `${SERVER_URL}api/get`;
 
@@ -25,7 +26,7 @@ export class APIService {
 		token: string
 	): Promise<APIResponse> {
 		try {
-			const response = await fetch(`${PRIVATE_API_URL}/${identifier}':'${projectDir}`, {
+			const response = await fetch(`${PRIVATE_API_URL}/${identifier}:${projectDir}`, {
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},

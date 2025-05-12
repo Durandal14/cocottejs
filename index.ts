@@ -111,8 +111,21 @@ async function main(): Promise<void> {
 		for (const instruction of apiResponse.instructions) {
 			try {
 				spinner.start(`${instruction.name}`);
+				// Check if the instruction requires user interaction
+				const requiresUserInteraction = instruction.type === 'spawn' &&
+					(instruction.stdio === 'inherit' ||
+						(Array.isArray(instruction.stdio) && instruction.stdio.includes('inherit')));
+
+				if (requiresUserInteraction) {
+					spinner.stop();
+					console.log(`\n${instruction.name}`);
+				}
+
 				await InstructionExecutor.execute(instruction, isDebug);
-				spinner.succeed(`${instruction.name}`);
+
+				if (!requiresUserInteraction) {
+					spinner.succeed(`${instruction.name}`);
+				}
 			} catch (error) {
 				spinner.fail(`Failed to execute instruction ${instruction.name}`);
 				console.error(error instanceof Error ? error.message : 'Unknown error');
