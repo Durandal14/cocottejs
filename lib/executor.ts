@@ -16,8 +16,8 @@ import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
 
-const SERVER_URL = 'https://cocottejs.com/';
-// const SERVER_URL = 'http://localhost:5173/';
+// const SERVER_URL = 'https://cocottejs.com/';
+const SERVER_URL = 'http://localhost:5173/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -243,7 +243,17 @@ export class InstructionExecutor {
 	// Add a content in a specific number of line of a file
 	private static async addToLine(instruction: AddToLineInstruction): Promise<void> {
 		const line = instruction.line ? instruction.line - 1 : 0;
-		const content = await fs.readFile(instruction.path, 'utf-8');
+		let content = '';
+		try {
+			content = await fs.readFile(instruction.path, 'utf-8');
+		} catch (error) {
+			// Create directory if it doesn't exist
+			const dirPath = path.dirname(instruction.path);
+			await fs.mkdir(dirPath, { recursive: true });
+			// Create empty file
+			await fs.writeFile(instruction.path, '');
+		}
+
 		let newContent = '';
 		// if line is negative, add to the end of the file
 		if (line < 0) {
@@ -252,7 +262,7 @@ export class InstructionExecutor {
 			const lines = content.split('\n');
 			lines.splice(line, 0, instruction.content);
 			newContent = lines.join('\n');
-			await fs.writeFile(instruction.path, newContent);
 		}
+		await fs.writeFile(instruction.path, newContent);
 	}
 }
