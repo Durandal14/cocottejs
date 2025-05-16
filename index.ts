@@ -110,21 +110,25 @@ async function main(): Promise<void> {
 		const spinner = ora();
 		for (const instruction of apiResponse.instructions) {
 			try {
-				spinner.start(`${instruction.name}`);
-				// Check if the instruction requires user interaction
-				const requiresUserInteraction = instruction.type === 'spawn' &&
-					(instruction.stdio === 'inherit' ||
-						(Array.isArray(instruction.stdio) && instruction.stdio.includes('inherit')));
+				if (instruction.name) {
+					spinner.start(`${instruction.name}`);
+					// Check if the instruction requires user interaction
+					const requiresUserInteraction = instruction.type === 'spawn' &&
+						(instruction.stdio === 'inherit' ||
+							(Array.isArray(instruction.stdio) && instruction.stdio.includes('inherit')));
 
-				if (requiresUserInteraction) {
-					spinner.stop();
-					console.log(`\n${instruction.name}`);
-				}
+					if (requiresUserInteraction) {
+						spinner.stop();
+						console.log(`\n${instruction.name}`);
+					}
 
-				await InstructionExecutor.execute(instruction, isDebug);
+					await InstructionExecutor.execute(instruction, isDebug);
 
-				if (!requiresUserInteraction) {
-					spinner.succeed(`${instruction.name}`);
+					if (!requiresUserInteraction) {
+						spinner.succeed(`${instruction.name}`);
+					}
+				} else {
+					await InstructionExecutor.execute(instruction, isDebug);
 				}
 			} catch (error) {
 				spinner.fail(`Failed to execute instruction ${instruction.name}`);

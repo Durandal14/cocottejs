@@ -15,7 +15,7 @@ export type InstructionType =
 
 export interface BaseInstruction {
 	type: InstructionType;
-	name: string;
+	name?: string;
 }
 
 export interface ReplaceLinesInstruction extends BaseInstruction {
