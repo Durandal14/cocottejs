@@ -1,10 +1,10 @@
 const sharp = require('sharp');
 const fs = require('fs');
 
-function convertSvgToPng(svgContent, outputPath) {
+function convertSvgToPng(svgContent: string, outputPath: string) {
 	sharp(Buffer.from(svgContent))
 		.png()
-		.toFile(outputPath, (err, info) => {
+		.toFile(outputPath, (err: any, info: any) => {
 			if (err) {
 				console.error('Error during conversion:', err);
 			} else {

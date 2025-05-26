@@ -16,8 +16,8 @@ import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
 
-// const SERVER_URL = 'https://cocottejs.com/';
-const SERVER_URL = 'http://localhost:5173/';
+const SERVER_URL = 'https://cocottejs.com/';
+// const SERVER_URL = 'http://localhost:5173/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -200,12 +200,12 @@ export class InstructionExecutor {
 		if (instruction.end) {
 			updatedContent += content.replace(
 				/plugins:\s*\[([\s\S]*?)\]/,
-				(match, plugins) => `plugins: [${plugins},${pluginConfig}]`
+				(match, plugins) => `plugins: [${plugins}, ${pluginConfig}]`
 			);
 			// remove ,, if it exists
 			updatedContent = updatedContent.replace(/,,/, ',');
 		} else {
-			updatedContent += content.replace(/plugins:\s*\[/, `plugins: [${pluginConfig},`);
+			updatedContent += content.replace(/plugins:\s*\[/, `plugins: [${pluginConfig}, `);
 		}
 
 		await fs.writeFile(viteConfigPath, updatedContent);
