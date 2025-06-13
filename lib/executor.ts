@@ -212,9 +212,9 @@ export class InstructionExecutor {
 	}
 
 	private static async addFile(instruction: AddFileInstruction): Promise<void> {
-		const server = SERVER_URL;
-		const response = await fetch(server + instruction.remotePath);
-		const content = await response.text();
+		const remoteFile = instruction.remotePath.startsWith("http") ? instruction.remotePath : SERVER_URL + instruction.remotePath
+		const response = await fetch(remoteFile);
+		const content = await response.arrayBuffer();
 
 		// Get directory path from file path
 		const dirPath = path.dirname(instruction.path);
@@ -222,7 +222,7 @@ export class InstructionExecutor {
 		// Create directory and any parent directories if they don't exist
 		await fs.mkdir(dirPath, { recursive: true });
 
-		await fs.writeFile(instruction.path, content);
+		await fs.writeFile(instruction.path, Buffer.from(content));
 	}
 
 	private static async removeFiles(instruction: RemoveFilesInstruction): Promise<void> {

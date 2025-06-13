@@ -10,16 +10,13 @@ import * as path from 'path';
  * Marmite - A CLI tool for scaffolding web projects with remote instructions
  *
  * Commands:
- *   build <identifier> <projectDir>    Build a project using public API
  *   get <identifier> <token> <projectDir>  Build a project using private API
  *
  * Options:
  *   --debug    Enable debug mode with full stdio output
  *
  * Examples:
- *   marmite build v1:nextjs-ts-react-tailwind-eslint my-project
  *   marmite get v1:nextjs-ts-react-tailwind-eslint my-token my-project
- *   marmite build v1:nextjs-ts-react-tailwind-eslint my-project --debug
  */
 async function main(): Promise<void> {
 	try {
@@ -28,7 +25,6 @@ async function main(): Promise<void> {
 		if (args.length < 3) {
 			console.error('Error: Missing required arguments.');
 			console.log('Usage:');
-			console.log('  marmite build <identifier> <projectDir> [--debug]');
 			console.log('  marmite get <identifier> <token> <projectDir> [--debug]');
 			process.exit(1);
 		}
@@ -44,10 +40,9 @@ async function main(): Promise<void> {
 		}
 
 		// Validate command
-		if (command !== 'build' && command !== 'get') {
+		if (command !== 'get') {
 			console.error('Error: Invalid command.');
 			console.log('Available commands:');
-			console.log('  build - Build a project using public API');
 			console.log('  get   - Build a project using private API');
 			process.exit(1);
 		}
@@ -56,21 +51,12 @@ async function main(): Promise<void> {
 		let projectDir: string;
 		let token: string | undefined;
 
-		if (command === 'build') {
-			if (rest.length !== 1 && rest.length !== 2) {
-				console.error('Error: build command requires exactly 2 arguments.');
-				console.log('Usage: marmite build <identifier> <projectDir> [--debug]');
-				process.exit(1);
-			}
-			projectDir = rest[0];
-		} else {
-			if (rest.length !== 2 && rest.length !== 3) {
-				console.error('Error: get command requires exactly 3 arguments.');
-				console.log('Usage: marmite get <identifier> <token> <projectDir> [--debug]');
-				process.exit(1);
-			}
-			[token, projectDir] = rest;
+		if (rest.length !== 2 && rest.length !== 3) {
+			console.error('Error: get command requires exactly 3 arguments.');
+			console.log('Usage: marmite get <identifier> <token> <projectDir> [--debug]');
+			process.exit(1);
 		}
+		[token, projectDir] = rest;
 
 		// Check if project directory exists
 		const projectPath = path.resolve(process.cwd(), projectDir);
@@ -91,12 +77,7 @@ async function main(): Promise<void> {
 		// Fetch instructions from API
 		let apiResponse;
 		try {
-			if (command === 'get' && token) {
-				apiResponse = await APIService.getPrivateInstructions(identifier, projectDir, token);
-			} else {
-				apiResponse = await APIService.getPublicInstructions(identifier, projectDir);
-				// console.log('DEBUG', JSON.stringify(apiResponse, null, 2));
-			}
+			apiResponse = await APIService.getPrivateInstructions(identifier, projectDir, token);
 		} catch (error) {
 			console.error(
 				'Failed to fetch instructions:',
