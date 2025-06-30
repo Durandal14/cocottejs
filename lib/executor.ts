@@ -205,7 +205,7 @@ export class InstructionExecutor {
 			// remove ,, if it exists
 			updatedContent = updatedContent.replace(/,,/, ',');
 		} else {
-			updatedContent += content.replace(/plugins:\s*\[/, `plugins: [${pluginConfig}, `);
+			updatedContent += content.replace(/plugins:\s*\[/, `${plugins}: [${pluginConfig}, `);
 		}
 
 		await fs.writeFile(viteConfigPath, updatedContent);
@@ -243,7 +243,7 @@ export class InstructionExecutor {
 
 	private static async replaceLines(instruction: ReplaceLinesInstruction): Promise<void> {
 		const content = await fs.readFile(instruction.path, 'utf-8');
-		const updatedContent = content.replace(instruction.contentFrom, instruction.contentTo);
+		const updatedContent = content.replaceAll(instruction.contentFrom, instruction.contentTo);
 		await fs.writeFile(instruction.path, updatedContent);
 	}
 
