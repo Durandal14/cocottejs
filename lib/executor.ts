@@ -15,9 +15,10 @@ import { spawn, SpawnOptions } from 'child_process';
 import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
+import AdmZip from 'adm-zip';
 
-// const SERVER_URL = 'https://cocottejs.com/';
-const SERVER_URL = 'http://localhost:5173/';
+const SERVER_URL = 'https://cocottejs.com/';
+// const SERVER_URL = 'http://localhost:5173/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -222,7 +223,23 @@ export class InstructionExecutor {
 		// Create directory and any parent directories if they don't exist
 		await fs.mkdir(dirPath, { recursive: true });
 
-		await fs.writeFile(instruction.path, Buffer.from(content));
+		// Check if the remote file is a ZIP file
+		if (remoteFile.endsWith('.zip')) {
+			// For ZIP files, instruction.path should be a directory (ending with '/')
+			const extractPath = instruction.path.endsWith('/')
+				? instruction.path
+				: instruction.path + '/';
+
+			// Create the extraction directory if it doesn't exist
+			await fs.mkdir(extractPath, { recursive: true });
+
+			// Extract the ZIP file
+			const zip = new AdmZip(Buffer.from(content));
+			zip.extractAllTo(extractPath, true);
+		} else {
+			// For regular files, write the content directly
+			await fs.writeFile(instruction.path, Buffer.from(content));
+		}
 	}
 
 	private static async removeFiles(instruction: RemoveFilesInstruction): Promise<void> {
@@ -243,8 +260,55 @@ export class InstructionExecutor {
 
 	private static async replaceLines(instruction: ReplaceLinesInstruction): Promise<void> {
 		const content = await fs.readFile(instruction.path, 'utf-8');
-		const updatedContent = content.replaceAll(instruction.contentFrom, instruction.contentTo);
-		await fs.writeFile(instruction.path, updatedContent);
+
+		let searchPattern: string | RegExp = instruction.contentFrom;
+
+		// Handle different types of contentFrom
+		if (typeof instruction.contentFrom === 'string') {
+			// Check if the string looks like a regex pattern (starts with / and ends with /flags)
+			// Be more strict: must start with / and end with / followed by optional flags
+			const regexMatch = instruction.contentFrom.match(/^\/(.+)\/([gimuy]*)$/);
+			if (regexMatch) {
+				const [, pattern, flags] = regexMatch;
+				try {
+					searchPattern = new RegExp(pattern, flags);
+				} catch (error) {
+					// If regex creation fails, treat as literal string
+					console.warn(`Invalid regex pattern "${pattern}", treating as literal string:`, error);
+					searchPattern = instruction.contentFrom;
+				}
+			}
+			// If it's a string but not a regex pattern, keep it as a string
+			// No need to do anything, searchPattern is already set to instruction.contentFrom
+		} else if (typeof instruction.contentFrom === 'object' && instruction.contentFrom !== null && !(instruction.contentFrom instanceof RegExp)) {
+			// Handle RegExp that may have been serialized/deserialized
+			const regexObj = instruction.contentFrom as any;
+			if (regexObj.source || regexObj.pattern) {
+				const source = regexObj.source || regexObj.pattern;
+				const flags = regexObj.flags || (regexObj.global ? 'g' : '') + (regexObj.ignoreCase ? 'i' : '') + (regexObj.multiline ? 'm' : '');
+				try {
+					searchPattern = new RegExp(source, flags);
+				} catch (error) {
+					// If regex creation fails, treat as literal string
+					console.warn(`Invalid regex pattern "${source}", treating as literal string:`, error);
+					searchPattern = source;
+				}
+			}
+		}
+
+		try {
+			const updatedContent = content.replaceAll(searchPattern, instruction.contentTo);
+			await fs.writeFile(instruction.path, updatedContent);
+		} catch (error) {
+			// If replaceAll fails (e.g., with invalid regex), try with literal string replacement
+			if (error instanceof TypeError && error.message.includes('Invalid regular expression')) {
+				console.warn('replaceAll failed with regex, falling back to literal string replacement');
+				const updatedContent = content.replaceAll(String(instruction.contentFrom), instruction.contentTo);
+				await fs.writeFile(instruction.path, updatedContent);
+			} else {
+				throw error;
+			}
+		}
 	}
 
 	// Add a content in a specific number of line of a file

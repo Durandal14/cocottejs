@@ -1,7 +1,7 @@
 import { APIResponse } from '../types/api.js';
 
-// const SERVER_URL = 'https://cocottejs.com/';
-const SERVER_URL = 'http://localhost:5173/';
+const SERVER_URL = 'https://cocottejs.com/';
+// const SERVER_URL = 'http://localhost:5173/';
 const PRIVATE_API_URL = `${SERVER_URL}api/get`;
 
 export class APIService {
