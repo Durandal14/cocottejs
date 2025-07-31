@@ -1,8 +1,8 @@
 import {
-	Instruction,
 	ShellInstruction,
 	SpawnInstruction,
 	AddFileInstruction,
+	Instruction,
 	ReplaceLinesInstruction,
 	CreateFileInstruction,
 	AddVitePluginInstruction,
@@ -213,7 +213,9 @@ export class InstructionExecutor {
 	}
 
 	private static async addFile(instruction: AddFileInstruction): Promise<void> {
-		const remoteFile = instruction.remotePath.startsWith("http") ? instruction.remotePath : SERVER_URL + instruction.remotePath
+		const remoteFile = instruction.remotePath.startsWith('http')
+			? instruction.remotePath
+			: SERVER_URL + instruction.remotePath;
 		const response = await fetch(remoteFile);
 		const content = await response.arrayBuffer();
 
@@ -271,7 +273,9 @@ export class InstructionExecutor {
 			if (regexMatch) {
 				const [, pattern, flags] = regexMatch;
 				try {
-					searchPattern = new RegExp(pattern, flags);
+					// Ensure global flag for replaceAll
+					const globalFlags = flags.includes('g') ? flags : flags + 'g';
+					searchPattern = new RegExp(pattern, globalFlags);
 				} catch (error) {
 					// If regex creation fails, treat as literal string
 					console.warn(`Invalid regex pattern "${pattern}", treating as literal string:`, error);
@@ -280,12 +284,29 @@ export class InstructionExecutor {
 			}
 			// If it's a string but not a regex pattern, keep it as a string
 			// No need to do anything, searchPattern is already set to instruction.contentFrom
-		} else if (typeof instruction.contentFrom === 'object' && instruction.contentFrom !== null && !(instruction.contentFrom instanceof RegExp)) {
+		} else if (instruction.contentFrom instanceof RegExp) {
+			// Handle native RegExp objects - ensure they have global flag for replaceAll
+			const flags = instruction.contentFrom.flags;
+			if (!flags.includes('g')) {
+				searchPattern = new RegExp(instruction.contentFrom.source, flags + 'g');
+			}
+			// If already global, keep as is
+		} else if (typeof instruction.contentFrom === 'object' && instruction.contentFrom !== null) {
 			// Handle RegExp that may have been serialized/deserialized
 			const regexObj = instruction.contentFrom as any;
 			if (regexObj.source || regexObj.pattern) {
 				const source = regexObj.source || regexObj.pattern;
-				const flags = regexObj.flags || (regexObj.global ? 'g' : '') + (regexObj.ignoreCase ? 'i' : '') + (regexObj.multiline ? 'm' : '');
+				let flags =
+					regexObj.flags ||
+					(regexObj.global ? 'g' : '') +
+						(regexObj.ignoreCase ? 'i' : '') +
+						(regexObj.multiline ? 'm' : '');
+
+				// Ensure global flag for replaceAll
+				if (!flags.includes('g')) {
+					flags += 'g';
+				}
+
 				try {
 					searchPattern = new RegExp(source, flags);
 				} catch (error) {
@@ -293,6 +314,14 @@ export class InstructionExecutor {
 					console.warn(`Invalid regex pattern "${source}", treating as literal string:`, error);
 					searchPattern = source;
 				}
+			} else {
+				// Handle RegExp that became empty object during JSON serialization
+				console.warn(
+					'contentFrom appears to be a RegExp that lost its properties during JSON serialization.'
+				);
+				console.warn('Please use string format with regex delimiters instead: "/pattern/flags"');
+				console.warn('Treating as literal string.');
+				searchPattern = String(instruction.contentFrom); // Will be "{}"
 			}
 		}
 
@@ -303,7 +332,10 @@ export class InstructionExecutor {
 			// If replaceAll fails (e.g., with invalid regex), try with literal string replacement
 			if (error instanceof TypeError && error.message.includes('Invalid regular expression')) {
 				console.warn('replaceAll failed with regex, falling back to literal string replacement');
-				const updatedContent = content.replaceAll(String(instruction.contentFrom), instruction.contentTo);
+				const updatedContent = content.replaceAll(
+					String(instruction.contentFrom),
+					instruction.contentTo
+				);
 				await fs.writeFile(instruction.path, updatedContent);
 			} else {
 				throw error;
