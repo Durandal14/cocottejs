@@ -11,7 +11,8 @@ export type InstructionType =
 	| 'addVitePlugin'
 	| 'addToLine'
 	| 'addJsonProperty'
-	| 'removeFiles';
+	| 'removeFiles'
+	| 'convertSvgToPng';
 
 export interface BaseInstruction {
 	type: InstructionType;
@@ -91,6 +92,12 @@ export interface RemoveFilesInstruction extends BaseInstruction {
 	path: string;
 }
 
+export interface ConvertSvgToPngInstruction extends BaseInstruction {
+	type: 'convertSvgToPng';
+	path: string;
+	value: string;
+}
+
 export type Instruction =
 	| ShellInstruction
 	| SpawnInstruction
@@ -102,7 +109,8 @@ export type Instruction =
 	| AddToLineInstruction
 	| ReplaceLinesInstruction
 	| AddJsonPropertyInstruction
-	| RemoveFilesInstruction;
+	| RemoveFilesInstruction
+	| ConvertSvgToPngInstruction;
 
 export interface InstructionSet {
 	config: FrameworkConfig;

@@ -1,21 +1,22 @@
-const sharp = require('sharp');
-const fs = require('fs');
+import sharp from 'sharp';
 
-function convertSvgToPng(svgContent: string, outputPath: string) {
-	sharp(Buffer.from(svgContent))
-		.png()
-		.toFile(outputPath, (err: any, info: any) => {
-			if (err) {
-				console.error('Error during conversion:', err);
-			} else {
-				console.log('Conversion successful:', info);
-			}
-		});
+export async function convertSvgToPng(svgContent: string, outputPath: string, options?: { width?: number; height?: number; density?: number }): Promise<void> {
+	try {
+		const sharpOptions: any = {};
+		if (options?.density) {
+			sharpOptions.density = options.density;
+		}
+
+		let sharpInstance = sharp(Buffer.from(svgContent), sharpOptions);
+
+		if (options?.width || options?.height) {
+			sharpInstance = sharpInstance.resize(options.width, options.height);
+		}
+
+		await sharpInstance.png().toFile(outputPath);
+		console.log('✔ Conversion successful:', outputPath);
+	} catch (err) {
+		console.error('✘ Error during conversion:', err);
+		throw err;
+	}
 }
-
-// Exemple d'utilisation :
-const svgContent =
-	'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="blue"/></svg>';
-const outputPath = 'output.png';
-
-convertSvgToPng(svgContent, outputPath);

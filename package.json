@@ -1,6 +1,6 @@
 {
 	"name": "cocottejs",
-	"version": "1.0.14",
+	"version": "1.0.15",
 	"description": "A CLI tool for scaffolding web projects",
 	"type": "module",
 	"main": "dist/index.js",
@@ -38,7 +38,8 @@
 		"adm-zip": "^0.5.16",
 		"estree-walker": "^3.0.3",
 		"node-fetch": "^3.3.2",
-		"ora": "^8.2.0"
+		"ora": "^8.2.0",
+		"sharp": "^0.34.3"
 	},
 	"devDependencies": {
 		"@types/adm-zip": "^0.5.7",

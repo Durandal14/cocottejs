@@ -9,16 +9,16 @@ import {
 	AddToLineInstruction,
 	AddJsonPropertyInstruction,
 	RemoveFilesInstruction,
+	ConvertSvgToPngInstruction,
 } from '../types/instructions.js';
+import { SERVER_URL } from '../types/api.js';
 import { exec, ExecOptions } from 'child_process';
 import { spawn, SpawnOptions } from 'child_process';
+import { convertSvgToPng } from './image.js';
 import { promises as fs } from 'fs';
 import fetch from 'node-fetch';
 import path from 'path';
 import AdmZip from 'adm-zip';
-
-const SERVER_URL = 'https://cocottejs.com/';
-// const SERVER_URL = 'http://localhost:5173/';
 
 export class InstructionExecutor {
 	static async execute(instruction: Instruction, isDebug: boolean = false): Promise<void> {
@@ -49,6 +49,9 @@ export class InstructionExecutor {
 				break;
 			case 'removeFiles':
 				await this.removeFiles(instruction);
+				break;
+			case 'convertSvgToPng':
+				await convertSvgToPng(instruction.value, instruction.path);
 				break;
 		}
 	}
@@ -299,8 +302,8 @@ export class InstructionExecutor {
 				let flags =
 					regexObj.flags ||
 					(regexObj.global ? 'g' : '') +
-						(regexObj.ignoreCase ? 'i' : '') +
-						(regexObj.multiline ? 'm' : '');
+					(regexObj.ignoreCase ? 'i' : '') +
+					(regexObj.multiline ? 'm' : '');
 
 				// Ensure global flag for replaceAll
 				if (!flags.includes('g')) {

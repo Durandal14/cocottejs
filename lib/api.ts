@@ -1,7 +1,4 @@
-import { APIResponse } from '../types/api.js';
-
-const SERVER_URL = 'https://cocottejs.com/';
-// const SERVER_URL = 'http://localhost:5173/';
+import { APIResponse, SERVER_URL } from '../types/api.js';
 const PRIVATE_API_URL = `${SERVER_URL}api/get`;
 
 export class APIService {
